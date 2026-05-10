@@ -4,87 +4,40 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Bell, Star } from "lucide-react";
+import { ArrowLeft, Bell, Star, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { KLineChart } from "@/components/charts/KLineChart";
-
-// 模拟股票数据
-const mockStockData: Record<string, any> = {
-  "000001.SZ": {
-    symbol: "000001.SZ",
-    name: "平安银行",
-    market: "A股",
-    price: 12.5,
-    change: 1.2,
-    changePercent: 1.2,
-    open: 12.3,
-    high: 12.8,
-    low: 12.2,
-    volume: 50000000,
-  },
-  "600000.SH": {
-    symbol: "600000.SH",
-    name: "浦发银行",
-    market: "A股",
-    price: 8.3,
-    change: -0.5,
-    changePercent: -0.5,
-    open: 8.4,
-    high: 8.5,
-    low: 8.2,
-    volume: 30000000,
-  },
-  "AAPL": {
-    symbol: "AAPL",
-    name: "Apple Inc.",
-    market: "美股",
-    price: 178.5,
-    change: 2.1,
-    changePercent: 1.2,
-    open: 177.0,
-    high: 179.5,
-    low: 176.5,
-    volume: 55000000,
-  },
-  "TSLA": {
-    symbol: "TSLA",
-    name: "Tesla Inc.",
-    market: "美股",
-    price: 245.8,
-    change: -1.3,
-    changePercent: -0.5,
-    open: 247.0,
-    high: 248.0,
-    low: 244.0,
-    volume: 35000000,
-  },
-};
+import { useStock } from "@/hooks/useStocks";
+import { usePolling } from "@/hooks/usePolling";
 
 export default function StockDetailPage({
   params,
 }: {
   params: { symbol: string };
 }) {
-  const [symbol, setSymbol] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    setSymbol(params.symbol);
-    // 模拟加载
-    setTimeout(() => setLoading(false), 500);
-  }, [params]);
+  const { quote, history, indicators, loading, error, refetch } = useStock(params.symbol);
+  const [isAlertSet, setIsAlertSet] = useState(false);
+
+  // 实时更新：每30秒刷新一次数据
+  usePolling(
+    async () => {
+      refetch();
+      return true;
+    },
+    30000, // 30秒
+    false // 不立即执行，因为 useStock 已经获取了数据
+  );
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">加载中...</div>
+        <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
+        <span className="ml-2 text-lg">加载中...</span>
       </div>
     );
   }
 
-  const quote = mockStockData[symbol] || null;
-
-  if (!quote) {
+  if (error || !quote) {
     return (
       <div className="space-y-6">
         <Link
@@ -94,9 +47,11 @@ export default function StockDetailPage({
           <ArrowLeft className="mr-1 h-4 w-4" />
           返回列表
         </Link>
-        <div className="text-center text-muted-foreground">
-          未找到股票信息
-        </div>
+        <Card>
+          <CardContent className="p-6 text-center text-red-500">
+            {error || "未找到股票信息"}
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -108,13 +63,24 @@ export default function StockDetailPage({
   return (
     <div className="space-y-6">
       {/* 返回按钮 */}
-      <Link
-        href="/stocks"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="mr-1 h-4 w-4" />
-        返回列表
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          href="/stocks"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          返回列表
+        </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => refetch()}
+          className="flex items-center gap-1"
+        >
+          <RefreshCw className="h-4 w-4" />
+          刷新
+        </Button>
+      </div>
 
       {/* 股票基本信息 */}
       <div className="flex items-center justify-between">
@@ -124,14 +90,21 @@ export default function StockDetailPage({
             <span className="text-sm text-muted-foreground">
               {quote.symbol}
             </span>
-            <Badge variant="secondary">{quote.market}</Badge>
+            <Badge variant="secondary">{quote.market || "A股"}</Badge>
           </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="icon">
             <Star className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              setIsAlertSet(!isAlertSet);
+              alert(isAlertSet ? "已取消价格提醒" : "已设置价格提醒");
+            }}
+          >
             <Bell className="h-4 w-4" />
           </Button>
         </div>
@@ -150,6 +123,10 @@ export default function StockDetailPage({
                 {quote.change.toFixed(2)} (
                 {quote.changePercent.toFixed(2)}%)
               </div>
+              <div className="mt-2 text-xs text-muted-foreground">
+                数据更新时间: {new Date().toLocaleTimeString("zh-CN")}
+                <span className="ml-2 text-green-500">(实时更新中...)</span>
+              </div>
             </div>
             <div className="text-right text-sm text-muted-foreground">
               <div>开盘: ¥{quote.open.toFixed(2)}</div>
@@ -161,57 +138,63 @@ export default function StockDetailPage({
         </CardContent>
       </Card>
 
-      {/* K线图（模拟数据） */}
-      <Card>
-        <CardHeader>
-          <CardTitle>K线图</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <KLineChart
-            history={generateMockHistory()}
-            height={400}
-            showVolume={true}
-          />
-        </CardContent>
-      </Card>
+      {/* K线图 */}
+      {history.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>K线图</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <KLineChart
+              history={history}
+              height={400}
+              showVolume={true}
+            />
+          </CardContent>
+        </Card>
+      )}
 
-      {/* 交易操作区 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>交易操作</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <Button className="flex-1 bg-red-500 hover:bg-red-600">
-              买入
-            </Button>
-            <Button className="flex-1 bg-green-500 hover:bg-green-600">
-              卖出
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* 技术指标 */}
+      {indicators && (
+        <Card>
+          <CardHeader>
+            <CardTitle>技术指标</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="p-4 border rounded-lg">
+                <div className="text-sm text-muted-foreground">MACD</div>
+                <div className="mt-1 text-lg font-bold">
+                  {indicators.macd && indicators.macd.length > 0
+                    ? indicators.macd[indicators.macd.length - 1].MACD.toFixed(3)
+                    : "-"}
+                </div>
+                <div className="mt-1 text-sm">
+                  信号: <span className={indicators.signal === "买入" ? "text-red-500" : "text-green-500"}>
+                    {indicators.signal || "-"}
+                  </span>
+                </div>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <div className="text-sm text-muted-foreground">RSI</div>
+                <div className="mt-1 text-lg font-bold">
+                  {indicators.rsi && indicators.rsi.length > 0
+                    ? indicators.rsi[indicators.rsi.length - 1].rsi.toFixed(2)
+                    : "-"}
+                </div>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <div className="text-sm text-muted-foreground">KDJ</div>
+                <div className="mt-1 text-sm">
+                  K: {indicators.kdj && indicators.kdj.length > 0 ? indicators.kdj[indicators.kdj.length - 1].K.toFixed(2) : "-"}<br />
+                  D: {indicators.kdj && indicators.kdj.length > 0 ? indicators.kdj[indicators.kdj.length - 1].D.toFixed(2) : "-"}<br />
+                  J: {indicators.kdj && indicators.kdj.length > 0 ? indicators.kdj[indicators.kdj.length - 1].J.toFixed(2) : "-"}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
-}
-
-// 生成模拟历史数据
-function generateMockHistory() {
-  const history = [];
-  const basePrice = 100;
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const open = basePrice + Math.random() * 20 - 10;
-    const close = open + Math.random() * 4 - 2;
-    history.push({
-      date: date.toISOString().split('T')[0],
-      open: parseFloat(open.toFixed(2)),
-      high: parseFloat((Math.max(open, close) + Math.random() * 2).toFixed(2)),
-      low: parseFloat((Math.min(open, close) - Math.random() * 2).toFixed(2)),
-      close: parseFloat(close.toFixed(2)),
-      volume: Math.floor(Math.random() * 1000000) + 500000,
-    });
-  }
-  return history;
 }

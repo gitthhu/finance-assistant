@@ -1,116 +1,96 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Bell, Star } from "lucide-react";
+import { ArrowLeft, Bell, Star, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-
-// 模拟基金数据
-const mockFundData: Record<string, any> = {
-  "000001": {
-    code: "000001",
-    name: "华夏成长混合",
-    type: "混合基金",
-    nav: 1.2345,
-    return1y: 15.2,
-    return3y: 45.6,
-    manager: "王经理",
-    company: "华夏基金",
-    scale: "120亿",
-    established: "2005-03-15",
-  },
-  "110022": {
-    code: "110022",
-    name: "易方达消费行业",
-    type: "公募基金",
-    nav: 3.4567,
-    return1y: 22.5,
-    return3y: 68.9,
-    manager: "张经理",
-    company: "易方达基金",
-    scale: "280亿",
-    established: "2010-08-20",
-  },
-  "161725": {
-    code: "161725",
-    name: "招商中证白酒",
-    type: "指数基金",
-    nav: 1.0987,
-    return1y: -8.3,
-    return3y: 25.4,
-    manager: "李经理",
-    company: "招商基金",
-    scale: "450亿",
-    established: "2015-06-10",
-  },
-  "510300": {
-    code: "510300",
-    name: "华泰柏瑞沪深300ETF",
-    type: "ETF",
-    nav: 4.5678,
-    return1y: 8.9,
-    return3y: 35.2,
-    manager: "刘经理",
-    company: "华泰柏瑞基金",
-    scale: "800亿",
-    established: "2012-05-28",
-  },
-};
+import { useFund } from "@/hooks/useFunds";
+import { usePolling } from "@/hooks/usePolling";
 
 export default function FundDetailPage({
   params,
 }: {
   params: { code: string };
 }) {
-  const [code, setCode] = useState<string>("");
+  const { quote, history, loading, error, refetch } = useFund(params.code);
   const [isAlertSet, setIsAlertSet] = useState(false);
 
-  useEffect(() => {
-    setCode(params.code);
-  }, [params]);
+  // 实时更新：每30秒刷新一次数据
+  usePolling(
+    async () => {
+      refetch();
+      return true;
+    },
+    30000, // 30秒
+    false // 不立即执行，因为 useFund 已经获取了数据
+  );
 
-  const fund = mockFundData[code] || {
-    code: code,
-    name: "未知基金",
-    type: "未知",
-    nav: 0,
-    return1y: 0,
-    return3y: 0,
-    manager: "未知",
-    company: "未知",
-    scale: "未知",
-    established: "未知",
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
+        <span className="ml-2 text-lg">加载中...</span>
+      </div>
+    );
+  }
 
-  const isUp = fund.return1y >= 0;
+  if (error || !quote) {
+    return (
+      <div className="space-y-6">
+        <Link
+          href="/funds"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          返回列表
+        </Link>
+        <Card>
+          <CardContent className="p-6 text-center text-red-500">
+            {error || "未找到基金信息"}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const isUp = quote.change >= 0;
+  const colorClass = isUp ? "text-red-500" : "text-green-500"; // A股红涨绿跌
 
   return (
     <div className="space-y-6">
-      {/* 返回按钮 */}
-      <Link href="/funds">
-        <Button variant="ghost" size="sm">
-          <ArrowLeft className="mr-2 h-4 w-4" />
+      {/* 返回按钮和刷新 */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/funds"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
           返回列表
+        </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => refetch()}
+          className="flex items-center gap-1"
+        >
+          <RefreshCw className="h-4 w-4" />
+          刷新
         </Button>
-      </Link>
+      </div>
 
       {/* 基金基本信息 */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{fund.name}</h1>
+          <h1 className="text-3xl font-bold">{quote.name}</h1>
           <div className="mt-2 flex items-center gap-4">
-            <span className="text-muted-foreground">{fund.code}</span>
-            <Badge>{fund.type}</Badge>
+            <span className="text-muted-foreground">{quote.code}</span>
+            <Badge>{quote.type}</Badge>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => alert("已添加到关注列表")}
-          >
+          <Button variant="outline" size="icon">
             <Star className="h-4 w-4" />
           </Button>
           <Button
@@ -132,28 +112,32 @@ export default function FundDetailPage({
           <div className="grid gap-6 md:grid-cols-2">
             <div>
               <div className="text-sm text-muted-foreground">最新净值</div>
-              <div className="mt-1 text-3xl font-bold">{fund.nav.toFixed(4)}</div>
-              <div className={`mt-1 text-lg ${isUp ? "text-red-500" : "text-green-500"}`}>
+              <div className="mt-1 text-3xl font-bold">{quote.nav.toFixed(4)}</div>
+              <div className={`mt-1 text-lg ${colorClass}`}>
                 {isUp ? "+" : ""}
-                {fund.return1y}% (近1年)
+                {quote.change.toFixed(4)} ({quote.changePercent.toFixed(2)}%)
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">
+                数据更新时间: {new Date().toLocaleTimeString("zh-CN")}
+                <span className="ml-2 text-green-500">(实时更新中...)</span>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">基金经理</span>
-                <span className="font-medium">{fund.manager}</span>
+                <span className="font-medium">{quote.manager}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">基金公司</span>
-                <span className="font-medium">{fund.company}</span>
+                <span className="font-medium">{quote.company}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">基金规模</span>
-                <span className="font-medium">{fund.scale}</span>
+                <span className="font-medium">{quote.scale}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">成立日期</span>
-                <span className="font-medium">{fund.established}</span>
+                <span className="font-medium">{quote.established}</span>
               </div>
             </div>
           </div>
@@ -169,19 +153,33 @@ export default function FundDetailPage({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span>近1年收益</span>
-              <span className={`font-medium ${fund.return1y >= 0 ? "text-red-500" : "text-green-500"}`}>
-                {fund.return1y >= 0 ? "+" : ""}{fund.return1y}%
+              <span className={`font-medium ${quote.return1y >= 0 ? "text-red-500" : "text-green-500"}`}>
+                {quote.return1y >= 0 ? "+" : ""}{quote.return1y}%
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span>近3年收益</span>
-              <span className={`font-medium ${fund.return3y >= 0 ? "text-red-500" : "text-green-500"}`}>
-                {fund.return3y >= 0 ? "+" : ""}{fund.return3y}%
+              <span className={`font-medium ${quote.return3y >= 0 ? "text-red-500" : "text-green-500"}`}>
+                {quote.return3y >= 0 ? "+" : ""}{quote.return3y}%
               </span>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* 历史净值走势 */}
+      {history.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>历史净值走势</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 flex items-center justify-center text-muted-foreground">
+              净值走势图（需要集成图表库）
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
