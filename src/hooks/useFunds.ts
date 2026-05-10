@@ -16,7 +16,7 @@ export function useFunds() {
     setError(null);
     
     try {
-      const response = await fetch("/api/funds");
+      const response = await fetch("/api/funds?includeNav=true");
       const data = await response.json();
       
       if (data.success) {

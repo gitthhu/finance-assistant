@@ -19,7 +19,7 @@ export function useStocks() {
     setError(null);
     
     try {
-      const response = await fetch("/api/stocks");
+      const response = await fetch("/api/stocks?includeQuote=true");
       const data = await response.json();
       
       if (data.success) {
