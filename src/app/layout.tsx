@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 
 export const metadata: Metadata = {
   title: "理财助手 - 智能投资分析工具",
@@ -13,16 +15,20 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
     <html lang="zh-CN">
       <body className="min-h-screen bg-background font-sans antialiased">
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <div className="flex-1 flex flex-col">
-            <Header />
-            <main className="flex-1 p-6">{children}</main>
+        <QueryClientProvider client={queryClient}>
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <div className="flex-1 flex flex-col">
+              <Header />
+              <main className="flex-1 p-6">{children}</main>
+            </div>
           </div>
-        </div>
+        </QueryClientProvider>
       </body>
     </html>
   );
