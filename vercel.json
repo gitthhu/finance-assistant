@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/scraper?action=batch",
+      "schedule": "0 9-15 * * 1-5"
+    }
+  ]
+}
