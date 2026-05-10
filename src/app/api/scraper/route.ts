@@ -8,11 +8,11 @@ import { calculateMACD, calculateRSI, calculateKDJ, generateSignal } from "@/lib
 
 /**
  * POST /api/scraper
- * 触发数据抓取，更新股�?基金数据
+ * 触发数据抓取，更新股票/基金数据
  * 
  * Body:
  * - type: 'stock' | 'fund'
- * - symbol: 股票代码或基金代�?
+ * - symbol: 股票代码或基金代码
  * - market: 'A' | 'HK' | 'US' (股票专用)
  */
 export async function POST(request: NextRequest) {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       return await scrapeFund(symbol);
     } else {
       return NextResponse.json(
-        { error: "不支持的类型，请使用 'stock' �?'fund'" },
+        { error: "不支持的类型，请使用 'stock' 或 'fund'" },
         { status: 400 }
       );
     }
@@ -68,7 +68,7 @@ async function scrapeStock(symbol: string, market: string) {
     );
   }
   
-  // 计算技术指�?
+  // 计算技术指标
   const ohlcvHistory = history.map(h => ({
     date: h.date,
     open: h.open,
@@ -87,9 +87,9 @@ async function scrapeStock(symbol: string, market: string) {
     success: true,
     data: {
       quote,
-      history: history.slice(-100), // 只返回最�?00�?
+      history: history.slice(-100), // 只返回最近100条
       technicalIndicators: {
-        macd: macd.slice(-50), // 只返回最�?0�?
+        macd: macd.slice(-50), // 只返回最近50条
         rsi: rsi.slice(-50),
         kdj: kdj.slice(-50),
         signal,
@@ -116,7 +116,7 @@ async function scrapeFund(code: string) {
     success: true,
     data: {
       quote,
-      history: history.slice(-100), // 只返回最�?00�?
+      history: history.slice(-100), // 只返回最近100条
     },
   });
 }
@@ -146,11 +146,11 @@ export async function GET(request: NextRequest) {
 async function batchScrape() {
   // 这里应该从数据库获取关注列表
   // 然后批量抓取数据并更新数据库
-  // 由于数据库尚未配置，这里只返回成�?
+  // 由于数据库尚未配置，这里只返回成功
   
   return NextResponse.json({
     success: true,
-    message: "批量抓取任务已启�?,
-    note: "请先配置 Supabase 数据库连�?,
+    message: "批量抓取任务已启动",
+    note: "请先配置 Supabase 数据库连接",
   });
 }

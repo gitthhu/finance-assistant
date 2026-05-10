@@ -62,7 +62,7 @@ const mockPortfolio = [
 // 获取持仓列表
 export async function GET(request: NextRequest) {
   try {
-    // 如果配置�?Supabase，使用数据库
+    // 如果配置了 Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from("portfolio")
@@ -92,13 +92,13 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error in GET /api/portfolio:", error);
     return NextResponse.json(
-      { error: "服务器内部错�? },
+      { error: "服务器内部错误" },
       { status: 500 }
     );
   }
 }
 
-// 添加持仓（通过交易记录�?
+// 添加持仓（通过交易记录）
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 如果配置�?Supabase，使用数据库
+    // 如果配置了 Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from("transactions")
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
         created_at: new Date().toISOString(),
       };
 
-      // 保存�?transactions.json
+      // 保存到 transactions.json
       const transactionsFile = join(dataDir, "transactions.json");
       let transactions = [];
       try {
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error in POST /api/portfolio:", error);
     return NextResponse.json(
-      { error: "服务器内部错�? },
+      { error: "服务器内部错误" },
       { status: 500 }
     );
   }

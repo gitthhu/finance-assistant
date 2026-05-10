@@ -58,7 +58,7 @@ const mockAlerts = [
 // 获取提醒列表
 export async function GET(request: NextRequest) {
   try {
-    // 如果配置�?Supabase，使用数据库
+    // 如果配置了 Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from("alerts")
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error in GET /api/alerts:", error);
     return NextResponse.json(
-      { error: "服务器内部错�? },
+      { error: "服务器内部错误" },
       { status: 500 }
     );
   }
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 如果配置�?Supabase，使用数据库
+    // 如果配置了 Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from("alerts")
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error in POST /api/alerts:", error);
     return NextResponse.json(
-      { error: "服务器内部错�? },
+      { error: "服务器内部错误" },
       { status: 500 }
     );
   }
@@ -175,7 +175,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // 如果配置�?Supabase，使用数据库
+    // 如果配置了 Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { error } = await supabase
         .from("alerts")
@@ -198,7 +198,7 @@ export async function DELETE(request: NextRequest) {
       
       if (filtered.length === alerts.length) {
         return NextResponse.json(
-          { error: "提醒不存�? },
+          { error: "提醒不存在" },
           { status: 404 }
         );
       }
@@ -210,7 +210,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Error in DELETE /api/alerts:", error);
     return NextResponse.json(
-      { error: "服务器内部错�? },
+      { error: "服务器内部错误" },
       { status: 500 }
     );
   }

@@ -11,18 +11,18 @@ import { calculateMACD, calculateRSI, calculateKDJ } from "@/lib/technical-indic
  * Vercel Cron Job - 定时抓取数据
  * 
  * 此API由Vercel Cron自动调用
- * 频率：交易日�?:00-15:00每小时执行一�?
+ * 频率：交易日的9:00-15:00每小时执行一次
  * 
- * 功能�?
- * 1. 获取关注列表中的所有股�?基金
- * 2. 抓取最新行情数�?
- * 3. 计算技术指�?
+ * 功能：
+ * 1. 获取关注列表中的所有股票/基金
+ * 2. 抓取最新行情数据
+ * 3. 计算技术指标
  * 4. 保存到数据库
- * 5. 检查价格提�?
+ * 5. 检查价格提醒
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log("开始执行定时数据抓取任�?..");
+    console.log("开始执行定时数据抓取任务...");
 
     // 1. 获取关注列表
     const { data: watchlist, error: watchlistError } = await supabase
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     let fundCount = 0;
     const errors: string[] = [];
 
-    // 2. 遍历关注列表，抓取数�?
+    // 2. 遍历关注列表，抓取数据
     for (const item of watchlist) {
       try {
         if (item.symbol_type === "stock") {
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
           fundCount++;
         }
 
-        // 3. 检查价格提�?
+        // 3. 检查价格提醒
         await checkPriceAlerts(item.symbol, item.symbol_type);
       } catch (error) {
         const errMsg = `抓取 ${item.symbol} 失败: ${error}`;
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(
-      `抓取任务完成: ${stockCount} 只股�? ${fundCount} 只基金`
+      `抓取任务完成: ${stockCount} 只股票, ${fundCount} 只基金`
     );
 
     return NextResponse.json({
@@ -110,7 +110,7 @@ async function scrapeStockData(symbol: string) {
     quote = await getChinaStockQuote(symbol, market as "A" | "HK");
     history = await getChinaStockHistory(symbol, market as "A" | "HK");
   } else {
-    // 默认�?A �?
+    // 默认为 A 股
     quote = await getChinaStockQuote(symbol, "A");
     history = await getChinaStockHistory(symbol, "A");
   }
@@ -155,7 +155,7 @@ async function scrapeStockData(symbol: string) {
       console.error("保存价格历史失败:", priceError);
     }
 
-    // 计算并保存技术指�?
+    // 计算并保存技术指标
     const ohlcvHistory = history.map((h) => ({
       date: h.date,
       open: h.open,
@@ -195,7 +195,7 @@ async function scrapeStockData(symbol: string) {
         );
 
       if (indicatorError) {
-        console.error("保存技术指标失�?", indicatorError);
+        console.error("保存技术指标失败:", indicatorError);
       }
     }
   }
@@ -224,7 +224,7 @@ async function scrapeFundData(code: string) {
     console.error("保存基金信息失败:", fundError);
   }
 
-  // 保存历史净�?
+  // 保存历史净值
   if (history.length > 0) {
     const navData = history.map((h) => ({
       code: quote!.code,
@@ -242,16 +242,16 @@ async function scrapeFundData(code: string) {
       });
 
     if (navError) {
-      console.error("保存基金历史净值失�?", navError);
+      console.error("保存基金历史净值失败:", navError);
     }
   }
 }
 
 /**
- * 检查价格提�?
+ * 检查价格提醒
  */
 async function checkPriceAlerts(symbol: string, symbolType: string) {
-  // 获取活跃的价格提�?
+  // 获取活跃的价格提醒
   const { data: alerts, error } = await supabase
     .from("alerts")
     .select("*")
@@ -262,7 +262,7 @@ async function checkPriceAlerts(symbol: string, symbolType: string) {
     return;
   }
 
-  // 获取最新价�?
+  // 获取最新价格
   let currentPrice = 0;
   
   if (symbolType === "stock") {
@@ -274,7 +274,7 @@ async function checkPriceAlerts(symbol: string, symbolType: string) {
     if (quote) currentPrice = quote.nav;
   }
 
-  // 检查每个提�?
+  // 检查每个提醒
   for (const alert of alerts) {
     let isTriggered = false;
 
@@ -294,9 +294,9 @@ async function checkPriceAlerts(symbol: string, symbolType: string) {
         })
         .eq("id", alert.id);
 
-      // 发送通知（可以在这里集成邮件、微信等通知方式�?
+      // 发送通知（可以在这里集成邮件、微信等通知方式）
       console.log(
-        `价格提醒触发: ${symbol} ${alert.alert_type === "above" ? "�? : "�?} ${alert.target_price}, 当前�? ${currentPrice}`
+        `价格提醒触发: ${symbol} ${alert.alert_type === "above" ? "≥" : "≤"} ${alert.target_price}, 当前价: ${currentPrice}`
       );
     }
   }
@@ -311,13 +311,13 @@ async function getQuoteForAlert(symbol: string, market: "A" | "HK" | "US" | stri
   } else if (market === "A" || market === "HK") {
     return await getChinaStockQuote(symbol, market as "A" | "HK");
   } else {
-    // 默认�?A �?
+    // 默认为 A 股
     return await getChinaStockQuote(symbol, "A");
   }
 }
 
 /**
- * 检测股票市场类�?
+ * 检测股票市场类型
  */
 function detectMarket(symbol: string): string {
   if (symbol.startsWith("6") || symbol.startsWith("5")) {

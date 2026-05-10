@@ -86,7 +86,7 @@ const mockStocks = [
     symbol: "0700",
     name: "腾讯控股",
     market: "HK",
-    industry: "互联�?,
+    industry: "互联网",
     list_date: "2004-06-16",
     created_at: new Date().toISOString(),
   },
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
     const market = searchParams.get("market");
     const search = searchParams.get("search");
 
-    // 如果配置�?Supabase，使用数据库
+    // 如果配置了 Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const from = (page - 1) * limit;
       const to = from + limit - 1;
@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
         },
       });
     } else {
-      // 使用本地数据或模拟数�?
+      // 使用本地数据或模拟数据
       let stocks = readLocalData();
       
       if (stocks.length === 0) {
@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
         writeLocalData(stocks);
       }
 
-      // 筛�?
+      // 筛选
       if (market) {
         stocks = stocks.filter((s: any) => s.market === market);
       }
@@ -176,13 +176,13 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error in GET /api/stocks:", error);
     return NextResponse.json(
-      { error: "服务器内部错�? },
+      { error: "服务器内部错误" },
       { status: 500 }
     );
   }
 }
 
-// 添加新股�?
+// 添加新股票
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 如果配置�?Supabase，使用数据库
+    // 如果配置了 Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from("stocks")
@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
       // 检查是否已存在
       if (stocks.find((s: any) => s.symbol === symbol)) {
         return NextResponse.json(
-          { error: "股票代码已存�? },
+          { error: "股票代码已存在" },
           { status: 409 }
         );
       }
@@ -244,7 +244,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error in POST /api/stocks:", error);
     return NextResponse.json(
-      { error: "服务器内部错�? },
+      { error: "服务器内部错误" },
       { status: 500 }
     );
   }
@@ -263,7 +263,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // 如果配置�?Supabase，使用数据库
+    // 如果配置了 Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { error } = await supabase
         .from("stocks")
@@ -286,7 +286,7 @@ export async function DELETE(request: NextRequest) {
       
       if (filtered.length === stocks.length) {
         return NextResponse.json(
-          { error: "股票不存�? },
+          { error: "股票不存在" },
           { status: 404 }
         );
       }
@@ -298,7 +298,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Error in DELETE /api/stocks:", error);
     return NextResponse.json(
-      { error: "服务器内部错�? },
+      { error: "服务器内部错误" },
       { status: 500 }
     );
   }

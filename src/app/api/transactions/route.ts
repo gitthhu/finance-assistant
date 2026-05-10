@@ -62,7 +62,7 @@ const mockTransactions = [
 // 获取交易记录
 export async function GET(request: NextRequest) {
   try {
-    // 如果配置�?Supabase，使用数据库
+    // 如果配置了 Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from("transactions")
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error in GET /api/transactions:", error);
     return NextResponse.json(
-      { error: "服务器内部错�? },
+      { error: "服务器内部错误" },
       { status: 500 }
     );
   }
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 如果配置�?Supabase，使用数据库
+    // 如果配置了 Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from("transactions")
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error in POST /api/transactions:", error);
     return NextResponse.json(
-      { error: "服务器内部错�? },
+      { error: "服务器内部错误" },
       { status: 500 }
     );
   }
