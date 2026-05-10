@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
@@ -46,15 +48,15 @@ const mockFunds = [
     id: "1",
     code: "110011",
     name: "易方达中小盘混合",
-    fund_type: "股票型",
-    company: "易方达基金",
+    fund_type: "股票�?,
+    company: "易方达基�?,
     created_at: new Date().toISOString(),
   },
   {
     id: "2",
     code: "000001",
     name: "华夏成长混合",
-    fund_type: "混合型",
+    fund_type: "混合�?,
     company: "华夏基金",
     created_at: new Date().toISOString(),
   },
@@ -66,7 +68,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
 
-    // 如果配置了 Supabase，使用数据库
+    // 如果配置�?Supabase，使用数据库
     if (isSupabaseConfigured()) {
       let query = supabase.from("funds").select("*");
 
@@ -96,7 +98,7 @@ export async function GET(request: NextRequest) {
         writeLocalData(funds);
       }
 
-      // 搜索筛选
+      // 搜索筛�?
       if (search) {
         funds = funds.filter(
           (f: any) =>
@@ -109,7 +111,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error in GET /api/funds:", error);
     return NextResponse.json(
-      { error: "服务器内部错误" },
+      { error: "服务器内部错�? },
       { status: 500 }
     );
   }
@@ -128,7 +130,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 如果配置了 Supabase，使用数据库
+    // 如果配置�?Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from("funds")
@@ -159,7 +161,7 @@ export async function POST(request: NextRequest) {
       // 检查是否已存在
       if (funds.find((f: any) => f.code === code)) {
         return NextResponse.json(
-          { error: "基金代码已存在" },
+          { error: "基金代码已存�? },
           { status: 409 }
         );
       }
@@ -168,7 +170,7 @@ export async function POST(request: NextRequest) {
         id: Date.now().toString(),
         code,
         name: name || code,
-        fund_type: fund_type || "混合型",
+        fund_type: fund_type || "混合�?,
         company: company || "",
         created_at: new Date().toISOString(),
       };
@@ -184,7 +186,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error in POST /api/funds:", error);
     return NextResponse.json(
-      { error: "服务器内部错误" },
+      { error: "服务器内部错�? },
       { status: 500 }
     );
   }
@@ -203,7 +205,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // 如果配置了 Supabase，使用数据库
+    // 如果配置�?Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { error } = await supabase
         .from("funds")
@@ -226,7 +228,7 @@ export async function DELETE(request: NextRequest) {
       
       if (filtered.length === funds.length) {
         return NextResponse.json(
-          { error: "基金不存在" },
+          { error: "基金不存�? },
           { status: 404 }
         );
       }
@@ -238,7 +240,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Error in DELETE /api/funds:", error);
     return NextResponse.json(
-      { error: "服务器内部错误" },
+      { error: "服务器内部错�? },
       { status: 500 }
     );
   }

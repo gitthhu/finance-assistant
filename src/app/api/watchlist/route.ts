@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
@@ -59,7 +61,7 @@ const mockWatchlist = [
 // 获取关注列表
 export async function GET(request: NextRequest) {
   try {
-    // 如果配置了 Supabase，使用数据库
+    // 如果配置�?Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from("watchlist")
@@ -89,13 +91,13 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error in GET /api/watchlist:", error);
     return NextResponse.json(
-      { error: "服务器内部错误" },
+      { error: "服务器内部错�? },
       { status: 500 }
     );
   }
 }
 
-// 添加到关注列表
+// 添加到关注列�?
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -108,7 +110,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 如果配置了 Supabase，使用数据库
+    // 如果配置�?Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from("watchlist")
@@ -124,7 +126,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error("Supabase error:", error);
         return NextResponse.json(
-          { error: "添加到关注列表失败" },
+          { error: "添加到关注列表失�? },
           { status: 500 }
         );
       }
@@ -137,7 +139,7 @@ export async function POST(request: NextRequest) {
       // 检查是否已存在
       if (watchlist.find((item: any) => item.symbol === symbol)) {
         return NextResponse.json(
-          { error: "已在关注列表中" },
+          { error: "已在关注列表�? },
           { status: 409 }
         );
       }
@@ -160,13 +162,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error in POST /api/watchlist:", error);
     return NextResponse.json(
-      { error: "服务器内部错误" },
+      { error: "服务器内部错�? },
       { status: 500 }
     );
   }
 }
 
-// 从关注列表删除
+// 从关注列表删�?
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -179,7 +181,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // 如果配置了 Supabase，使用数据库
+    // 如果配置�?Supabase，使用数据库
     if (isSupabaseConfigured()) {
       const { error } = await supabase
         .from("watchlist")
@@ -214,7 +216,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Error in DELETE /api/watchlist:", error);
     return NextResponse.json(
-      { error: "服务器内部错误" },
+      { error: "服务器内部错�? },
       { status: 500 }
     );
   }
