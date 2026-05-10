@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, TrendingUp, DollarSign, Briefcase, Bell, Settings } from "lucide-react";
+import { Home, TrendingUp, DollarSign, Bell } from "lucide-react";
 
 const menuItems = [
   {
@@ -18,19 +18,9 @@ const menuItems = [
     icon: DollarSign,
   },
   {
-    title: "持仓",
-    href: "/portfolio",
-    icon: Briefcase,
-  },
-  {
     title: "提醒",
     href: "/alerts",
     icon: Bell,
-  },
-  {
-    title: "设置",
-    href: "/settings",
-    icon: Settings,
   },
 ];
 

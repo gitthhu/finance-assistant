@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Bell, User } from "lucide-react";
+import { Bell } from "lucide-react";
 
 export default function Header() {
   return (
@@ -31,24 +31,14 @@ export default function Header() {
             >
               基金
             </Link>
-            <Link
-              href="/portfolio"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              持仓
-            </Link>
           </nav>
         </div>
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+        <div className="flex flex-1 items-center justify-end">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/alerts">
               <Bell className="h-5 w-5" />
               <span className="sr-only">价格提醒</span>
             </Link>
-          </Button>
-          <Button variant="ghost" size="icon">
-            <User className="h-5 w-5" />
-            <span className="sr-only">用户</span>
           </Button>
         </div>
       </div>
